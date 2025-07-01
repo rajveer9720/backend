@@ -1,0 +1,180 @@
+# API Test Requests
+
+This file contains sample HTTP requests for testing the API endpoints.
+
+## 1. Register a new user
+
+```http
+POST http://localhost:3001/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "john.doe@example.com",
+  "firstName": "John",
+  "lastName": "Doe",
+  "password": "password123"
+}
+```
+
+## 2. Register an admin user
+
+```http
+POST http://localhost:3001/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "admin@example.com",
+  "firstName": "Admin",
+  "lastName": "User",
+  "password": "admin123",
+  "role": "admin"
+}
+```
+
+## 3. Login
+
+```http
+POST http://localhost:3001/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "john.doe@example.com",
+  "password": "password123"
+}
+```
+
+## 4. Get current user profile
+
+```http
+GET http://localhost:3001/api/users/profile
+Authorization: Bearer {{accessToken}}
+```
+
+## 5. Update profile
+
+```http
+PATCH http://localhost:3001/api/users/profile
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "firstName": "John Updated",
+  "lastName": "Doe Updated"
+}
+```
+
+## 6. Change password
+
+```http
+POST http://localhost:3001/api/users/change-password
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "currentPassword": "password123",
+  "newPassword": "newpassword123"
+}
+```
+
+## 7. Refresh token
+
+```http
+POST http://localhost:3001/api/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+```
+
+## 8. Logout
+
+```http
+POST http://localhost:3001/api/auth/logout
+Authorization: Bearer {{accessToken}}
+```
+
+## Admin Routes (Require admin role)
+
+## 9. Get all users (Admin only)
+
+```http
+GET http://localhost:3001/api/users
+Authorization: Bearer {{adminAccessToken}}
+```
+
+## 10. Create user (Admin only)
+
+```http
+POST http://localhost:3001/api/users
+Authorization: Bearer {{adminAccessToken}}
+Content-Type: application/json
+
+{
+  "email": "newuser@example.com",
+  "firstName": "New",
+  "lastName": "User",
+  "password": "password123",
+  "role": "user"
+}
+```
+
+## 11. Get user by ID (Admin only)
+
+```http
+GET http://localhost:3001/api/users/{{userId}}
+Authorization: Bearer {{adminAccessToken}}
+```
+
+## 12. Update user (Admin only)
+
+```http
+PATCH http://localhost:3001/api/users/{{userId}}
+Authorization: Bearer {{adminAccessToken}}
+Content-Type: application/json
+
+{
+  "firstName": "Updated",
+  "lastName": "Name",
+  "role": "admin",
+  "isActive": false
+}
+```
+
+## 13. Delete user (Admin only)
+
+```http
+DELETE http://localhost:3001/api/users/{{userId}}
+Authorization: Bearer {{adminAccessToken}}
+```
+
+## Testing with curl
+
+### Register and Login Flow:
+
+```bash
+# 1. Register
+RESPONSE=$(curl -s -X POST http://localhost:3001/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "test@example.com",
+    "firstName": "Test",
+    "lastName": "User",
+    "password": "password123"
+  }')
+
+echo "Registration Response: $RESPONSE"
+
+# 2. Extract tokens (you'll need jq for this)
+ACCESS_TOKEN=$(echo $RESPONSE | jq -r '.accessToken')
+REFRESH_TOKEN=$(echo $RESPONSE | jq -r '.refreshToken')
+
+# 3. Test protected route
+curl -X GET http://localhost:3001/api/users/profile \
+  -H "Authorization: Bearer $ACCESS_TOKEN"
+
+# 4. Refresh token
+curl -X POST http://localhost:3001/api/auth/refresh \
+  -H "Content-Type: application/json" \
+  -d "{\"refreshToken\": \"$REFRESH_TOKEN\"}"
+```
